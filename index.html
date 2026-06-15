@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026 — Prediction Pool</title>
+<style>
+  /* ===== Trionda palette — exact host-nation colors ===== */
+  :root{
+    --can-red:#D52B1E;   /* Canada — maple leaf */
+    --mex-green:#006847;  /* Mexico — eagle */
+    --usa-blue:#0A3161;   /* USA — star (deep navy) */
+    --wave-blue:#1A6DD0;  /* brighter in-flight blue */
+    --gold:#C8A24A;       /* champion's gold trophy detail */
+    --gold-deep:#A67F2E;
+    --ink:#0E0E0E;        /* ball linework black */
+    --white:#FFFFFF;
+    --paper:#F7F8F6;      /* off-white field */
+    --paper2:#EDEFEA;
+    --line:#E2E4DE;
+    --mute:#6B7268;
+    --hit:#006847;        /* correct = Mexico green */
+    --hit-bg:rgba(0,104,71,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ink); min-height:100vh; line-height:1.45;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 80px}
+
+  /* ===== HERO: la ola wave ===== */
+  .hero{position:relative;margin:0 -16px 8px;padding:0;overflow:hidden;background:var(--white)}
+  .hero-wave{display:block;width:100%;height:auto}
+  .hero-text{padding:22px 16px 4px}
+  .eyebrow{font-size:11px;letter-spacing:.34em;text-transform:uppercase;font-weight:800;color:var(--ink)}
+  .eyebrow .dot{display:inline-block;width:7px;height:7px;border-radius:50%;vertical-align:middle;margin:0 3px}
+  .dot.r{background:var(--can-red)} .dot.g{background:var(--mex-green)} .dot.b{background:var(--wave-blue)}
+  h1{font-family:"Arial Black","Helvetica Neue",sans-serif;font-weight:900;font-size:clamp(32px,8vw,58px);line-height:.92;letter-spacing:-.03em;margin:8px 0 6px;text-transform:uppercase;font-style:italic}
+  h1 .ola{color:var(--can-red)}
+  h1 .ola2{color:var(--mex-green)}
+  h1 .ola3{color:var(--wave-blue)}
+  .sub{color:var(--mute);font-size:13.5px;max-width:62ch}
+
+  .scorebar{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .pill{background:var(--white);border:1.5px solid var(--ink);border-radius:999px;padding:5px 12px;font-size:11.5px;color:var(--ink);font-weight:600}
+  .pill b{font-weight:900}
+  .pill.r{border-color:var(--can-red);color:var(--can-red)}
+  .pill.g{border-color:var(--mex-green);color:var(--mex-green)}
+  .pill.b{border-color:var(--wave-blue);color:var(--wave-blue)}
+
+  /* ===== tabs ===== */
+  .tabs{display:flex;gap:0;margin:20px 0 18px;border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:var(--white)}
+  .tab{flex:1;text-align:center;padding:12px 8px;font-size:13px;font-weight:800;color:var(--ink);cursor:pointer;border:none;background:none;transition:.15s;text-transform:uppercase;letter-spacing:.04em}
+  .tab+.tab{border-left:2px solid var(--ink)}
+  .tab.active{background:var(--ink);color:var(--white)}
+
+  /* ===== leaderboard ===== */
+  .lb{display:flex;flex-direction:column;gap:8px}
+  .row{
+    position:relative;display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:12px;
+    background:var(--white);border:2px solid var(--ink);border-radius:14px;padding:13px 16px 13px 13px;cursor:pointer;transition:transform .12s, box-shadow .12s;
+    overflow:hidden;
+  }
+  .row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--ink)}
+  .row:hover{transform:translateY(-1px);box-shadow:4px 4px 0 var(--ink)}
+  .row.top1{border-color:var(--gold);background:linear-gradient(95deg,rgba(200,162,74,.16),var(--white) 60%)}
+  .row.top1::before{background:var(--gold)}
+  .row.top2::before{background:var(--can-red)}
+  .row.top3::before{background:var(--wave-blue)}
+  .rank{font-family:"Arial Black",sans-serif;font-style:italic;font-size:30px;font-weight:900;color:var(--ink);text-align:center;font-variant-numeric:tabular-nums;line-height:1}
+  .row.top1 .rank{color:var(--gold-deep)}
+  .who{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .meta{font-size:11.5px;color:var(--mute);margin-top:2px;font-weight:600}
+  .pts{text-align:right;display:flex;align-items:baseline;gap:5px}
+  .pts .n{font-family:"Arial Black",sans-serif;font-style:italic;font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+  .pts .l{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .movement{font-size:12px;font-weight:900;width:15px;display:inline-block;font-style:normal}
+
+  /* ===== notes / results ===== */
+  .note{background:var(--white);border:2px solid var(--ink);border-left:8px solid var(--gold);border-radius:12px;padding:13px 15px;font-size:13px;color:var(--ink);margin-bottom:16px;font-weight:500}
+  .note b{font-weight:800}
+  .gcard{background:var(--white);border:2px solid var(--ink);border-radius:16px;padding:0;margin-bottom:14px;overflow:hidden}
+  .gband{height:8px;display:flex}
+  .gband i{flex:1}
+  .gband i:nth-child(1){background:var(--can-red)}
+  .gband i:nth-child(2){background:var(--mex-green)}
+  .gband i:nth-child(3){background:var(--wave-blue)}
+  .gbody{padding:15px 16px 16px}
+  .ghead{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;gap:10px;flex-wrap:wrap}
+  .gname{font-family:"Arial Black",sans-serif;font-style:italic;font-size:22px;font-weight:900;letter-spacing:-.02em;text-transform:uppercase}
+  .gname .tag{font-size:10px;letter-spacing:.22em;color:var(--mute);text-transform:uppercase;display:block;font-family:Inter,sans-serif;font-weight:800;margin-bottom:0;font-style:normal}
+  .espn{font-size:11.5px;color:var(--ink);text-decoration:none;border:1.5px solid var(--ink);border-radius:999px;padding:5px 11px;white-space:nowrap;font-weight:800}
+  .espn:hover{background:var(--ink);color:var(--white)}
+  .status{font-size:11px;color:var(--mute);padding:5px 10px;border-radius:999px;border:1.5px solid var(--line);font-weight:700}
+  .status.done{color:var(--white);background:var(--mex-green);border-color:var(--mex-green)}
+  .teamrow{display:grid;grid-template-columns:1fr repeat(4,40px);gap:6px;align-items:center;margin-bottom:6px}
+  .teamrow.header span{font-size:10px;color:var(--mute);text-align:center;letter-spacing:.05em;font-weight:800}
+  .tname{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pos{height:38px;border:1.5px solid var(--line);background:var(--paper);border-radius:9px;color:var(--mute);font-weight:900;font-size:14px;cursor:pointer;transition:.12s;font-family:"Arial Black",sans-serif;font-style:italic}
+  .pos:hover{border-color:var(--ink);color:var(--ink)}
+  .pos.sel{background:var(--ink);color:var(--white);border-color:var(--ink)}
+  .gactions{display:flex;gap:8px;margin-top:12px}
+  .btn{flex:1;padding:9px;border-radius:9px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-size:12.5px;font-weight:800;cursor:pointer}
+  .btn:hover{border-color:var(--ink)}
+  .btn.clear{color:var(--mute)}
+
+  /* ===== live tables ===== */
+  .ltable{border:1.5px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
+  .lt-head,.lt-row{display:grid;grid-template-columns:22px 1fr 24px 24px 24px 24px 34px 34px;align-items:center;gap:2px;padding:7px 10px;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .lt-head{background:var(--paper2);font-weight:800;color:var(--mute);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em}
+  .lt-head span,.lt-row span{text-align:center}
+  .lt-head .lt-team,.lt-row .lt-team{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lt-row{border-top:1px solid var(--line);font-weight:600}
+  .lt-row .lt-pos{font-family:"Arial Black",sans-serif;font-style:italic;color:var(--mute);font-weight:900}
+  .lt-row .lt-team{font-weight:800}
+  .lt-row .lt-pts{font-weight:900}
+  .lt-row.q{background:var(--hit-bg)}
+  .lt-row.q .lt-pos{color:var(--mex-green)}
+  .lt-row.q .lt-team::after{content:" ●";color:var(--mex-green);font-size:9px;vertical-align:middle}
+
+  .matches{display:flex;flex-direction:column;gap:7px}
+  .match{display:grid;grid-template-columns:1fr 38px 16px 38px 1fr;align-items:center;gap:6px;padding:6px 8px;border:1.5px solid var(--line);border-radius:9px;background:var(--paper)}
+  .match.played{background:var(--white);border-color:var(--ink)}
+  .m-team{font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .m-team.h{text-align:right}
+  .m-team.a{text-align:left}
+  .m-score{width:38px;height:34px;text-align:center;border:1.5px solid var(--line);border-radius:8px;background:var(--white);font-family:"Arial Black",sans-serif;font-style:italic;font-size:15px;font-weight:900;color:var(--ink)}
+  .m-score:focus{outline:none;border-color:var(--wave-blue)}
+  .m-dash{text-align:center;font-size:11px;color:var(--mute);font-weight:700}
+
+  /* ===== detail modal ===== */
+  .overlay{position:fixed;inset:0;background:rgba(14,14,14,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(2px)}
+  .sheet{background:var(--paper);border:2px solid var(--ink);border-radius:18px 18px 0 0;width:100%;max-width:1080px;max-height:88vh;overflow-y:auto;padding:0 0 40px;position:relative}
+  @media(min-width:680px){.overlay{align-items:center;padding:20px}.sheet{border-radius:18px}}
+  .sheet-band{height:10px;display:flex}
+  .sheet-band i{flex:1}
+  .sheet-band i:nth-child(1){background:var(--can-red)}
+  .sheet-band i:nth-child(2){background:var(--mex-green)}
+  .sheet-band i:nth-child(3){background:var(--wave-blue)}
+  .sheet-inner{padding:18px 18px 0}
+  .sheet h2{font-family:"Arial Black",sans-serif;font-style:italic;font-size:28px;font-weight:900;letter-spacing:-.02em;text-transform:uppercase}
+  .sheet .close{position:absolute;top:16px;right:16px;font-size:26px;color:var(--ink);background:var(--white);border:2px solid var(--ink);border-radius:50%;width:38px;height:38px;cursor:pointer;line-height:.8;z-index:2}
+  .dgrid{display:grid;grid-template-columns:1fr;gap:9px;margin-top:16px}
+  @media(min-width:560px){.dgrid{grid-template-columns:1fr 1fr}}
+  .dg{border:2px solid var(--ink);border-radius:12px;padding:0;background:var(--white);overflow:hidden}
+  .dg-top{height:5px;display:flex}.dg-top i{flex:1}
+  .dg-top i:nth-child(1){background:var(--can-red)}.dg-top i:nth-child(2){background:var(--mex-green)}.dg-top i:nth-child(3){background:var(--wave-blue)}
+  .dg h4{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);padding:9px 12px 7px;display:flex;justify-content:space-between;font-weight:900}
+  .dg h4 .gp{color:var(--mute);font-weight:700}
+  .dg h4 .gp.win{color:var(--mex-green)}
+  .dl{display:flex;justify-content:space-between;font-size:13px;padding:5px 12px;border-top:1px solid var(--line);font-weight:600}
+  .dl .rk{color:var(--mute);font-weight:600}
+  .ok{color:var(--mex-green);font-weight:800}
+  .no{color:var(--ink)}
+  .pend{color:var(--mute);opacity:.55}
+  footer{margin-top:30px;text-align:center;color:var(--mute);font-size:11px;line-height:1.7;font-weight:600}
+  .save-tag{font-size:11px;color:var(--mex-green);opacity:0;transition:.3s;font-weight:800}
+  .save-tag.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <svg class="hero-wave" viewBox="0 0 1080 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="1080" height="150" fill="#FFFFFF"/>
+      <!-- three waves meeting at center triangle, la ola -->
+      <path d="M0,150 L0,70 C180,18 300,18 420,62 C480,84 510,150 540,150 Z" fill="#D52B1E"/>
+      <path d="M1080,150 L1080,70 C900,18 780,18 660,62 C600,84 570,150 540,150 Z" fill="#1A6DD0"/>
+      <path d="M340,150 C400,96 480,80 540,80 C600,80 680,96 740,150 Z" fill="#006847"/>
+      <!-- gold seam outlines, champion's detail -->
+      <path d="M0,70 C180,18 300,18 420,62 C480,84 510,150 540,150" fill="none" stroke="#C8A24A" stroke-width="2.5"/>
+      <path d="M1080,70 C900,18 780,18 660,62 C600,84 570,150 540,150" fill="none" stroke="#C8A24A" stroke-width="2.5"/>
+      <path d="M340,150 C400,96 480,80 540,80 C600,80 680,96 740,150" fill="none" stroke="#0E0E0E" stroke-width="2"/>
+      <!-- center triangle: three nations unite -->
+      <path d="M540,150 L505,150 C512,118 528,100 540,92 C552,100 568,118 575,150 Z" fill="#FFFFFF" stroke="#0E0E0E" stroke-width="2"/>
+      <circle cx="540" cy="118" r="4.5" fill="#C8A24A"/>
+    </svg>
+    <div class="hero-text">
+      <div class="eyebrow">Canada<span class="dot r"></span> · México<span class="dot g"></span> · USA<span class="dot b"></span></div>
+      <h1><span class="ola">World</span> <span class="ola2">Cup</span> <span class="ola3">Pool</span></h1>
+      <p class="sub">Three waves, twelve groups, twenty brackets. Enter each group's final table and the standings ride the wave in real time — a champion's scoreboard for the champion's ball.</p>
+      <div class="scorebar">
+        <span class="pill"><b id="pl-count">20</b> players</span>
+        <span class="pill"><b id="grp-done">0</b>/12 groups final</span>
+        <span class="pill g"><b>1</b> pt · correct spot</span>
+        <span class="pill r"><b>+1</b> · perfect group</span>
+        <span class="pill b"><b>5</b> max · per group</span>
+        <span class="pill">Tiebreak · <b>most correct</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="board">Leaderboard</button>
+    <button class="tab" data-view="live">Live Tables</button>
+    <button class="tab" data-view="results">Enter Results</button>
+  </div>
+
+  <div id="view-board"></div>
+  <div id="view-live" style="display:none"></div>
+  <div id="view-results" style="display:none"></div>
+
+  <footer>
+    La ola · the wave that unites three nations. Scores compute live from each group's final table.<br>
+    <span class="save-tag" id="savetag">Saved ✓</span>
+  </footer>
+</div>
+<div id="modal"></div>
+
+<script>
+const DATA = {"PLAYERS": ["Guillermo", "Miguel Aguilar", "Jorge Aguilar", "El Flamenco", "Larry Fisherman", "Joner the Boner", "Probinho", "Tim", "Josh Garrison", "Leonardo Alvarez", "Matty G", "Monsieur Le Coq", "Nelson Zuniga Herrera", "Jeff Raisner", "Alex Curiel", "(Former) Dr. Bill", "Ray Probst", "Steve Sandigo", "Spencer Drew", "Jesse"], "TEAMS_BY_GROUP": {"A": ["Mexico", "South Korea", "Czechia", "South Africa"], "B": ["Switzerland", "Canada", "Qatar", "Bosnia-Herzegovina"], "C": ["Brazil", "Morocco", "Scotland", "Haiti"], "D": ["USA", "Australia", "Türkiye", "Paraguay"], "E": ["Germany", "Ecuador", "Ivory Coast", "Curacao"], "F": ["Netherlands", "Japan", "Sweden", "Tunisia"], "G": ["Belgium", "Iran", "Egypt", "New Zealand"], "H": ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde"], "I": ["France", "Senegal", "Norway", "Iraq"], "J": ["Argentina", "Austria", "Algeria", "Jordan"], "K": ["Portugal", "Colombia", "Uzbekistan", "Congo DR"], "L": ["England", "Croatia", "Panama", "Ghana"]}, "PREDICTIONS": {"A": {"Mexico": {"Guillermo": 2, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 2, "Probinho": 1, "Tim": 2, "Josh Garrison": 2, "Leonardo Alvarez": 1, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 2, "Jesse": 1}, "South Korea": {"Guillermo": 1, "Miguel Aguilar": 2, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 2, "Joner the Boner": 1, "Probinho": 2, "Tim": 3, "Josh Garrison": 1, "Leonardo Alvarez": 3, "Matty G": 3, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 3, "(Former) Dr. Bill": 2, "Ray Probst": 2, "Steve Sandigo": 2, "Spencer Drew": 1, "Jesse": 2}, "Czechia": {"Guillermo": 4, "Miguel Aguilar": 3, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 3, "Probinho": 3, "Tim": 1, "Josh Garrison": 3, "Leonardo Alvarez": 2, "Matty G": 2, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 3, "Alex Curiel": 2, "(Former) Dr. Bill": 3, "Ray Probst": 3, "Steve Sandigo": 3, "Spencer Drew": 3, "Jesse": 4}, "South Africa": {"Guillermo": 3, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 4, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 3}}, "B": {"Switzerland": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 2, "Probinho": 1, "Tim": 3, "Josh Garrison": 2, "Leonardo Alvarez": 1, "Matty G": 2, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 2, "Spencer Drew": 1, "Jesse": 2}, "Canada": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 2, "Joner the Boner": 1, "Probinho": 2, "Tim": 2, "Josh Garrison": 1, "Leonardo Alvarez": 2, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 2, "Steve Sandigo": 1, "Spencer Drew": 2, "Jesse": 1}, "Qatar": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 4, "Tim": 4, "Josh Garrison": 3, "Leonardo Alvarez": 3, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 3, "(Former) Dr. Bill": 4, "Ray Probst": 3, "Steve Sandigo": 4, "Spencer Drew": 3, "Jesse": 4}, "Bosnia-Herzegovina": {"Guillermo": 2, "Miguel Aguilar": 2, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 3, "Probinho": 3, "Tim": 1, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 3, "Alex Curiel": 4, "(Former) Dr. Bill": 3, "Ray Probst": 4, "Steve Sandigo": 3, "Spencer Drew": 4, "Jesse": 3}}, "C": {"Brazil": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 2, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 2, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 1}, "Morocco": {"Guillermo": 2, "Miguel Aguilar": 2, "Jorge Aguilar": 3, "El Flamenco": 1, "Larry Fisherman": 2, "Joner the Boner": 2, "Probinho": 1, "Tim": 2, "Josh Garrison": 3, "Leonardo Alvarez": 2, "Matty G": 2, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 2, "Steve Sandigo": 3, "Spencer Drew": 2, "Jesse": 2}, "Scotland": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 2, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 3, "Probinho": 3, "Tim": 3, "Josh Garrison": 2, "Leonardo Alvarez": 3, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 3, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 3, "Steve Sandigo": 2, "Spencer Drew": 3, "Jesse": 3}, "Haiti": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 4, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 4}}, "D": {"USA": {"Guillermo": 2, "Miguel Aguilar": 2, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 2, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 2, "Matty G": 2, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 1, "Steve Sandigo": 2, "Spencer Drew": 1, "Jesse": 1}, "Australia": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 3, "Joner the Boner": 3, "Probinho": 3, "Tim": 4, "Josh Garrison": 3, "Leonardo Alvarez": 3, "Matty G": 1, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 3, "Alex Curiel": 4, "(Former) Dr. Bill": 3, "Ray Probst": 3, "Steve Sandigo": 3, "Spencer Drew": 4, "Jesse": 2}, "Türkiye": {"Guillermo": 4, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 2, "Joner the Boner": 4, "Probinho": 1, "Tim": 3, "Josh Garrison": 2, "Leonardo Alvarez": 4, "Matty G": 3, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 2, "Steve Sandigo": 1, "Spencer Drew": 3, "Jesse": 4}, "Paraguay": {"Guillermo": 1, "Miguel Aguilar": 4, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 4, "Joner the Boner": 2, "Probinho": 4, "Tim": 2, "Josh Garrison": 4, "Leonardo Alvarez": 1, "Matty G": 4, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 4, "Alex Curiel": 3, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 2, "Jesse": 3}}, "E": {"Germany": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 1, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 2, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 1}, "Ecuador": {"Guillermo": 2, "Miguel Aguilar": 2, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 2, "Probinho": 2, "Tim": 2, "Josh Garrison": 2, "Leonardo Alvarez": 2, "Matty G": 1, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 2, "Steve Sandigo": 2, "Spencer Drew": 2, "Jesse": 2}, "Ivory Coast": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 2, "Joner the Boner": 3, "Probinho": 3, "Tim": 4, "Josh Garrison": 3, "Leonardo Alvarez": 3, "Matty G": 3, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 3, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 3, "Steve Sandigo": 3, "Spencer Drew": 3, "Jesse": 3}, "Curacao": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 4, "Tim": 3, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 4}}, "F": {"Netherlands": {"Guillermo": 2, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 2, "Larry Fisherman": 1, "Joner the Boner": 3, "Probinho": 2, "Tim": 1, "Josh Garrison": 2, "Leonardo Alvarez": 1, "Matty G": 2, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 2}, "Japan": {"Guillermo": 1, "Miguel Aguilar": 2, "Jorge Aguilar": 3, "El Flamenco": 1, "Larry Fisherman": 2, "Joner the Boner": 1, "Probinho": 1, "Tim": 2, "Josh Garrison": 1, "Leonardo Alvarez": 2, "Matty G": 1, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 2, "Steve Sandigo": 2, "Spencer Drew": 2, "Jesse": 1}, "Sweden": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 2, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 2, "Probinho": 4, "Tim": 3, "Josh Garrison": 3, "Leonardo Alvarez": 3, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 3, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 3, "Jesse": 3}, "Tunisia": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 3, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 3, "Steve Sandigo": 3, "Spencer Drew": 4, "Jesse": 4}}, "G": {"Belgium": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 1, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 2, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 2, "Jesse": 1}, "Iran": {"Guillermo": 3, "Miguel Aguilar": 2, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 2, "Joner the Boner": 4, "Probinho": 3, "Tim": 2, "Josh Garrison": 3, "Leonardo Alvarez": 2, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 3, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 3, "Steve Sandigo": 2, "Spencer Drew": 3, "Jesse": 3}, "Egypt": {"Guillermo": 2, "Miguel Aguilar": 3, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 3, "Joner the Boner": 3, "Probinho": 2, "Tim": 3, "Josh Garrison": 2, "Leonardo Alvarez": 3, "Matty G": 2, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 1, "Ray Probst": 2, "Steve Sandigo": 3, "Spencer Drew": 1, "Jesse": 2}, "New Zealand": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 2, "Probinho": 4, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 4}}, "H": {"Spain": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 1, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 1}, "Uruguay": {"Guillermo": 2, "Miguel Aguilar": 2, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 2, "Joner the Boner": 2, "Probinho": 2, "Tim": 2, "Josh Garrison": 2, "Leonardo Alvarez": 2, "Matty G": 2, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 2, "Steve Sandigo": 2, "Spencer Drew": 2, "Jesse": 2}, "Saudi Arabia": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 3, "Probinho": 4, "Tim": 3, "Josh Garrison": 3, "Leonardo Alvarez": 3, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 3, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 3, "Steve Sandigo": 3, "Spencer Drew": 3, "Jesse": 3}, "Cape Verde": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 3, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 4}}, "I": {"France": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 1, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 1}, "Senegal": {"Guillermo": 3, "Miguel Aguilar": 2, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 3, "Probinho": 2, "Tim": 2, "Josh Garrison": 3, "Leonardo Alvarez": 3, "Matty G": 2, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 3, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 3, "Steve Sandigo": 3, "Spencer Drew": 2, "Jesse": 3}, "Norway": {"Guillermo": 2, "Miguel Aguilar": 3, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 2, "Joner the Boner": 2, "Probinho": 3, "Tim": 3, "Josh Garrison": 2, "Leonardo Alvarez": 2, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 2, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 2, "Steve Sandigo": 2, "Spencer Drew": 3, "Jesse": 2}, "Iraq": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 4, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 4}}, "J": {"Argentina": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 2, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 1, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 1}, "Austria": {"Guillermo": 2, "Miguel Aguilar": 3, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 2, "Joner the Boner": 3, "Probinho": 3, "Tim": 3, "Josh Garrison": 2, "Leonardo Alvarez": 2, "Matty G": 2, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 3, "Steve Sandigo": 2, "Spencer Drew": 2, "Jesse": 2}, "Algeria": {"Guillermo": 3, "Miguel Aguilar": 2, "Jorge Aguilar": 2, "El Flamenco": 1, "Larry Fisherman": 3, "Joner the Boner": 2, "Probinho": 2, "Tim": 2, "Josh Garrison": 3, "Leonardo Alvarez": 3, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 3, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 2, "Steve Sandigo": 3, "Spencer Drew": 3, "Jesse": 3}, "Jordan": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 4, "Probinho": 4, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 4, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 4}}, "K": {"Portugal": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 2, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 2, "Probinho": 1, "Tim": 2, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 1, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 2, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 1}, "Colombia": {"Guillermo": 2, "Miguel Aguilar": 2, "Jorge Aguilar": 1, "El Flamenco": 2, "Larry Fisherman": 2, "Joner the Boner": 1, "Probinho": 2, "Tim": 1, "Josh Garrison": 2, "Leonardo Alvarez": 2, "Matty G": 2, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 1, "Steve Sandigo": 2, "Spencer Drew": 2, "Jesse": 2}, "Uzbekistan": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 3, "Joner the Boner": 4, "Probinho": 4, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 3, "Matty G": 4, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 4, "Alex Curiel": 3, "(Former) Dr. Bill": 4, "Ray Probst": 4, "Steve Sandigo": 3, "Spencer Drew": 3, "Jesse": 4}, "Congo DR": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 4, "Joner the Boner": 3, "Probinho": 3, "Tim": 3, "Josh Garrison": 3, "Leonardo Alvarez": 4, "Matty G": 3, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 3, "Alex Curiel": 4, "(Former) Dr. Bill": 3, "Ray Probst": 3, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 3}}, "L": {"England": {"Guillermo": 1, "Miguel Aguilar": 1, "Jorge Aguilar": 1, "El Flamenco": 1, "Larry Fisherman": 1, "Joner the Boner": 1, "Probinho": 2, "Tim": 1, "Josh Garrison": 1, "Leonardo Alvarez": 1, "Matty G": 2, "Monsieur Le Coq": 1, "Nelson Zuniga Herrera": 1, "Jeff Raisner": 1, "Alex Curiel": 1, "(Former) Dr. Bill": 1, "Ray Probst": 1, "Steve Sandigo": 1, "Spencer Drew": 1, "Jesse": 1}, "Croatia": {"Guillermo": 2, "Miguel Aguilar": 2, "Jorge Aguilar": 2, "El Flamenco": 2, "Larry Fisherman": 2, "Joner the Boner": 2, "Probinho": 1, "Tim": 2, "Josh Garrison": 2, "Leonardo Alvarez": 2, "Matty G": 1, "Monsieur Le Coq": 2, "Nelson Zuniga Herrera": 2, "Jeff Raisner": 2, "Alex Curiel": 2, "(Former) Dr. Bill": 2, "Ray Probst": 2, "Steve Sandigo": 2, "Spencer Drew": 2, "Jesse": 2}, "Panama": {"Guillermo": 4, "Miguel Aguilar": 4, "Jorge Aguilar": 4, "El Flamenco": 4, "Larry Fisherman": 4, "Joner the Boner": 3, "Probinho": 3, "Tim": 4, "Josh Garrison": 4, "Leonardo Alvarez": 3, "Matty G": 4, "Monsieur Le Coq": 3, "Nelson Zuniga Herrera": 4, "Jeff Raisner": 4, "Alex Curiel": 4, "(Former) Dr. Bill": 4, "Ray Probst": 3, "Steve Sandigo": 3, "Spencer Drew": 3, "Jesse": 3}, "Ghana": {"Guillermo": 3, "Miguel Aguilar": 3, "Jorge Aguilar": 3, "El Flamenco": 3, "Larry Fisherman": 3, "Joner the Boner": 4, "Probinho": 4, "Tim": 3, "Josh Garrison": 3, "Leonardo Alvarez": 4, "Matty G": 3, "Monsieur Le Coq": 4, "Nelson Zuniga Herrera": 3, "Jeff Raisner": 3, "Alex Curiel": 3, "(Former) Dr. Bill": 3, "Ray Probst": 4, "Steve Sandigo": 4, "Spencer Drew": 4, "Jesse": 4}}}};
+const PLAYERS = DATA.PLAYERS;
+const TEAMS_BY_GROUP = DATA.TEAMS_BY_GROUP;
+const PREDICTIONS = DATA.PREDICTIONS;
+const GROUPS = Object.keys(TEAMS_BY_GROUP);
+
+// ESPN group-stage results live here (when known). Format: results[group] = {team: finalPosition}
+let results = {};
+let prevRanks = {}; // for movement arrows
+
+// Live match scores. Format: matches[group] = [{h,a,hs,as} ...] (hs/as null until played)
+// Round-robin fixture order for a 4-team group (teams indexed 0-3):
+const FIXTURE_PAIRS = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
+let matches = {};
+function blankMatches(){
+  const m={};
+  for(const g of GROUPS){
+    const t = TEAMS_BY_GROUP[g];
+    m[g] = FIXTURE_PAIRS.map(([i,j])=>({h:t[i],a:t[j],hs:null,as:null}));
+  }
+  return m;
+}
+// Known results already played (matchday 1), seeded on first open.
+const SEED = [
+  ['A',4,2,0],['A',5,2,1],
+  ['B',3,1,1],['B',2,1,1],
+  ['C',0,1,1],['C',1,1,0],
+  ['D',4,4,1],['D',5,2,0],
+  ['E',4,7,1],['E',5,0,1],
+  ['F',0,2,2]
+];
+function seedMatches(){
+  const m = blankMatches();
+  for(const [g,idx,hs,as] of SEED){ m[g][idx].hs=hs; m[g][idx].as=as; }
+  return m;
+}
+
+// ---------- persistence ----------
+async function loadResults(){
+  try{
+    const r = await window.storage.get('wc2026_results', true);
+    if(r && r.value) results = JSON.parse(r.value);
+  }catch(e){ results = {}; }
+  try{
+    const m = await window.storage.get('wc2026_matches', true);
+    if(m && m.value){ matches = JSON.parse(m.value); }
+  }catch(e){}
+  if(!matches || !Object.keys(matches).length) matches = blankMatches();
+  // ensure all groups present (in case fixtures added later)
+  for(const g of GROUPS){ if(!matches[g]) matches[g] = blankMatches()[g]; }
+  // Official scores baked into this file always take precedence (scorekeeper is source of truth).
+  for(const [g,idx,hs,as] of SEED){
+    if(matches[g] && matches[g][idx]){ matches[g][idx].hs=hs; matches[g][idx].as=as; }
+  }
+}
+async function saveResults(){
+  try{
+    await window.storage.set('wc2026_results', JSON.stringify(results), true);
+    flashSave();
+  }catch(e){}
+}
+async function saveMatches(){
+  try{
+    await window.storage.set('wc2026_matches', JSON.stringify(matches), true);
+    flashSave();
+  }catch(e){}
+}
+function flashSave(){
+  const t=document.getElementById('savetag'); if(!t) return;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1200);
+}
+
+// ---------- live group table (FIFA points + tiebreakers) ----------
+function computeTable(g){
+  const stats={};
+  for(const team of TEAMS_BY_GROUP[g]) stats[team]={team,P:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,Pts:0};
+  let anyPlayed=false;
+  for(const mt of (matches[g]||[])){
+    if(mt.hs==null || mt.as==null) continue;
+    anyPlayed=true;
+    const h=stats[mt.h], a=stats[mt.a];
+    const hs=+mt.hs, as=+mt.as;
+    h.P++;a.P++; h.GF+=hs;h.GA+=as; a.GF+=as;a.GA+=hs;
+    if(hs>as){h.W++;a.L++;h.Pts+=3;}
+    else if(hs<as){a.W++;h.L++;a.Pts+=3;}
+    else {h.D++;a.D++;h.Pts++;a.Pts++;}
+  }
+  for(const k in stats) stats[k].GD = stats[k].GF-stats[k].GA;
+  const rows = Object.values(stats).sort((x,y)=>
+    y.Pts-x.Pts || y.GD-x.GD || y.GF-x.GF || x.team.localeCompare(y.team)
+  );
+  return {rows, anyPlayed};
+}
+
+// ---------- scoring ----------
+function scoreFor(player){
+  let pts=0, correct=0, perfectGroups=0, groupsScored=0;
+  for(const g of GROUPS){
+    const res = results[g];
+    if(!res || Object.keys(res).length<4) continue;
+    groupsScored++;
+    let groupCorrect=0;
+    for(const team of TEAMS_BY_GROUP[g]){
+      const pick = PREDICTIONS[g][team][player];
+      if(pick===res[team]){ pts++; correct++; groupCorrect++; }
+    }
+    if(groupCorrect===4){ pts+=1; perfectGroups++; }
+  }
+  return {pts,correct,perfectGroups,groupsScored};
+}
+
+function standings(){
+  const arr = PLAYERS.map(p=>({player:p, ...scoreFor(p)}));
+  arr.sort((a,b)=> b.pts-a.pts || b.correct-a.correct || a.player.localeCompare(b.player));
+  // assign ranks with ties
+  let rank=0, lastKey=null;
+  arr.forEach((row,i)=>{
+    const key = row.pts+'|'+row.correct;
+    if(key!==lastKey){ rank=i+1; lastKey=key; }
+    row.rank=rank;
+  });
+  return arr;
+}
+
+// ---------- leaderboard view ----------
+function renderBoard(){
+  const arr = standings();
+  const anyScored = arr.some(r=>r.groupsScored>0);
+  const el = document.getElementById('view-board');
+  let html = '<div class="lb">';
+  arr.forEach(r=>{
+    const topCls = r.rank===1?'top1':r.rank===2?'top2':r.rank===3?'top3':'';
+    let mv='';
+    if(prevRanks[r.player]!=null && anyScored){
+      const d = prevRanks[r.player]-r.rank;
+      if(d>0) mv='<span class="movement" style="color:var(--hit)">▲</span>';
+      else if(d<0) mv='<span class="movement" style="color:#c2554e">▼</span>';
+      else mv='<span class="movement" style="color:var(--mute)">·</span>';
+    }
+    const metaBits = [];
+    metaBits.push(r.correct+' correct spots');
+    if(r.perfectGroups>0) metaBits.push(r.perfectGroups+'× perfect group');
+    html += `<div class="row ${topCls}" data-player="${encodeURIComponent(r.player)}">
+      <div class="rank">${mv}${r.rank}</div>
+      <div><div class="who">${esc(r.player)}</div><div class="meta">${anyScored?metaBits.join(' · '):'awaiting first result'}</div></div>
+      <div class="pts"><div class="n">${r.pts}</div><div class="l">pts</div></div>
+    </div>`;
+  });
+  html += '</div>';
+  if(!anyScored){
+    html = '<div class="note">No groups scored yet. Switch to <b>Enter Results</b>, set a group\u2019s final 1\u20134 order, and the table comes alive.</div>' + html;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.row').forEach(row=>{
+    row.onclick=()=>openDetail(decodeURIComponent(row.dataset.player));
+  });
+  // update prevRanks snapshot
+  const snap={}; arr.forEach(r=>snap[r.player]=r.rank); prevRanks=snap;
+  document.getElementById('grp-done').textContent = GROUPS.filter(g=>results[g]&&Object.keys(results[g]).length>=4).length;
+}
+
+// ---------- results entry view ----------
+function renderResults(){
+  const el = document.getElementById('view-results');
+  let html = '<div class="note"><b>How it works:</b> Tap a position (1\u20134) for each team to record the official final standing. Each team needs a unique spot. Use the ESPN link to check the real table. Results save automatically and are shared with everyone who opens this scoreboard.</div>';
+  for(const g of GROUPS){
+    const teams = TEAMS_BY_GROUP[g];
+    const res = results[g]||{};
+    const done = Object.keys(res).length>=4 && new Set(Object.values(res)).size===4;
+    html += `<div class="gcard">
+      <div class="gband"><i></i><i></i><i></i></div>
+      <div class="gbody">
+      <div class="ghead">
+        <div class="gname"><span class="tag">Group</span>${g}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="status ${done?'done':''}">${done?'Final ✓':'In progress'}</span>
+          <a class="espn" target="_blank" rel="noopener" href="https://www.espn.com/soccer/standings/_/league/fifa.world">ESPN ↗</a>
+        </div>
+      </div>
+      <div class="teamrow header"><span></span><span>1st</span><span>2nd</span><span>3rd</span><span>4th</span></div>`;
+    for(const team of teams){
+      html += `<div class="teamrow"><div class="tname">${esc(team)}</div>`;
+      for(let p=1;p<=4;p++){
+        const sel = res[team]===p?'sel':'';
+        html += `<button class="pos ${sel}" data-g="${g}" data-team="${encodeURIComponent(team)}" data-pos="${p}">${p}</button>`;
+      }
+      html += '</div>';
+    }
+    html += `<div class="gactions">
+      <button class="btn clear" data-clear="${g}">Clear group</button>
+    </div></div></div>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.pos').forEach(b=>{
+    b.onclick=()=>setPos(b.dataset.g, decodeURIComponent(b.dataset.team), +b.dataset.pos);
+  });
+  el.querySelectorAll('[data-clear]').forEach(b=>{
+    b.onclick=()=>{ delete results[b.dataset.clear]; saveResults(); renderResults(); };
+  });
+}
+
+function setPos(g, team, pos){
+  if(!results[g]) results[g]={};
+  // if another team in group already holds this pos, swap/clear it
+  for(const t of Object.keys(results[g])){
+    if(t!==team && results[g][t]===pos) delete results[g][t];
+  }
+  if(results[g][team]===pos) delete results[g][team]; // toggle off
+  else results[g][team]=pos;
+  saveResults();
+  renderResults();
+}
+
+// ---------- player detail ----------
+function openDetail(player){
+  const s = scoreFor(player);
+  let body = `<div class="dgrid">`;
+  for(const g of GROUPS){
+    const res = results[g];
+    const scored = res && Object.keys(res).length>=4;
+    let gpts=0, gc=0;
+    const lines = TEAMS_BY_GROUP[g].slice().map(team=>{
+      const pick = PREDICTIONS[g][team][player];
+      const actual = res?res[team]:null;
+      const hit = scored && pick===actual;
+      if(hit){gpts++;gc++;}
+      return {team,pick,actual,hit,scored};
+    }).sort((a,b)=>a.pick-b.pick);
+    const perfect = scored && gc===4;
+    if(perfect) gpts+=1;
+    body += `<div class="dg"><div class="dg-top"><i></i><i></i><i></i></div><h4>Group ${g} <span class="gp${perfect?' win':''}">${scored?(gpts+' pt'+(perfect?' · perfect ✓':'')):'pending'}</span></h4>`;
+    for(const ln of lines){
+      const cls = !ln.scored?'pend':ln.hit?'ok':'no';
+      const mark = !ln.scored?'·':ln.hit?'✓':'✕';
+      const actTxt = ln.scored?('actual '+ln.actual):'';
+      body += `<div class="dl ${cls}"><span>${esc(ln.team)} <span class="rk" style="color:var(--mute)">(picked ${ln.pick})</span></span><span>${actTxt} ${mark}</span></div>`;
+    }
+    body += '</div>';
+  }
+  body += '</div>';
+  document.getElementById('modal').innerHTML = `<div class="overlay" id="ov">
+    <div class="sheet">
+      <div class="sheet-band"><i></i><i></i><i></i></div>
+      <button class="close" id="cl">×</button>
+      <div class="sheet-inner">
+      <div class="eyebrow">Scorecard</div>
+      <h2>${esc(player)}</h2>
+      <div class="scorebar" style="margin-top:10px">
+        <span class="pill"><b>${s.pts}</b> total pts</span>
+        <span class="pill g"><b>${s.correct}</b> correct spots</span>
+        <span class="pill r"><b>${s.perfectGroups}</b> perfect groups</span>
+      </div>
+      ${body}
+      </div>
+    </div></div>`;
+  document.getElementById('cl').onclick=closeModal;
+  document.getElementById('ov').onclick=(e)=>{ if(e.target.id==='ov') closeModal(); };
+}
+function closeModal(){ document.getElementById('modal').innerHTML=''; }
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ---------- live tables view ----------
+function renderLive(){
+  const el = document.getElementById('view-live');
+  let html = '<div class="note"><b>Live group tables.</b> Enter each match score to see the running standings — W-D-L, goal difference, points, and the current 1\u20134 order by FIFA tiebreakers (points, then GD, then goals for). Prediction scoring stays locked until you lock a group as final on the <b>Enter Results</b> tab.</div>';
+  for(const g of GROUPS){
+    const {rows, anyPlayed} = computeTable(g);
+    const finalLocked = results[g] && Object.keys(results[g]).length>=4;
+    html += `<div class="gcard">
+      <div class="gband"><i></i><i></i><i></i></div>
+      <div class="gbody">
+      <div class="ghead">
+        <div class="gname"><span class="tag">Group</span>${g}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${finalLocked?'<span class="status done">Locked ✓</span>':(anyPlayed?'<span class="status">In progress</span>':'<span class="status">Not started</span>')}
+          <a class="espn" target="_blank" rel="noopener" href="https://www.espn.com/soccer/standings/_/league/fifa.world">ESPN ↗</a>
+        </div>
+      </div>`;
+    // standings table
+    html += `<div class="ltable">
+      <div class="lt-head"><span class="lt-team">Team</span><span>P</span><span>W</span><span>D</span><span>L</span><span>GD</span><span class="lt-pts">Pts</span></div>`;
+    rows.forEach((r,i)=>{
+      const qual = i<2?'q':'';
+      html += `<div class="lt-row ${qual}"><span class="lt-pos">${i+1}</span><span class="lt-team">${esc(r.team)}</span><span>${r.P}</span><span>${r.W}</span><span>${r.D}</span><span>${r.L}</span><span>${r.GD>0?'+':''}${r.GD}</span><span class="lt-pts">${r.Pts}</span></div>`;
+    });
+    html += `</div>`;
+    // match score inputs
+    html += `<div class="matches">`;
+    (matches[g]||[]).forEach((mt,idx)=>{
+      const played = mt.hs!=null && mt.as!=null;
+      html += `<div class="match ${played?'played':''}">
+        <span class="m-team h">${esc(mt.h)}</span>
+        <input class="m-score" inputmode="numeric" maxlength="2" value="${mt.hs==null?'':mt.hs}" data-g="${g}" data-i="${idx}" data-side="hs" placeholder="–">
+        <span class="m-dash">v</span>
+        <input class="m-score" inputmode="numeric" maxlength="2" value="${mt.as==null?'':mt.as}" data-g="${g}" data-i="${idx}" data-side="as" placeholder="–">
+        <span class="m-team a">${esc(mt.a)}</span>
+      </div>`;
+    });
+    html += `</div></div></div>`;
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.m-score').forEach(inp=>{
+    inp.onchange = ()=>setScore(inp.dataset.g, +inp.dataset.i, inp.dataset.side, inp.value);
+  });
+}
+
+function setScore(g, i, side, val){
+  const v = val.trim();
+  matches[g][i][side] = v===''?null:Math.max(0,Math.min(99,parseInt(v,10)||0));
+  saveMatches();
+  renderLive();
+}
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const v=t.dataset.view;
+    document.getElementById('view-board').style.display = v==='board'?'':'none';
+    document.getElementById('view-live').style.display = v==='live'?'':'none';
+    document.getElementById('view-results').style.display = v==='results'?'':'none';
+    if(v==='board') renderBoard(); else if(v==='live') renderLive(); else renderResults();
+  };
+});
+
+// ---------- init ----------
+(async function(){
+  await loadResults();
+  document.getElementById('pl-count').textContent = PLAYERS.length;
+  renderBoard();
+  renderLive();
+  renderResults();
+})();
+</script>
+</body>
+</html>
